@@ -25,7 +25,7 @@ sudo apt install clang-format-3.9 python3-levenshtein python3-yaml
 
 ## Examples
 
-If Unformat is clone into in */home/abc/unformat* and C++ source code is in */home/abc/my_project*,
+If Unformat is cloned into */home/abc/unformat* and C++ source code is in */home/abc/my_project*,
 
 ```sh
 python3 /home/abc/unformat --root /home/abc/my_project "/home/abc/my_project/**/*.h" "/home/abc/my_project/**/*.cpp"
