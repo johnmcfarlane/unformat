@@ -38,3 +38,8 @@ and will write new configurations to that location as they are found.
 The search may continue indefinitely.
 Press Ctrl-C to stop early. 
 Any intermediate results will be written out.
+
+## Links
+
+To submit feedback and bug reports, please file an [issue](https://github.com/johnmcfarlane/unformat/issues).  
+For another solution to this problem, check out [whatstyle](https://github.com/mikr/whatstyle).
