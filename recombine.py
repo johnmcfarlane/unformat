@@ -67,7 +67,7 @@ def mutate_value(key, value, mutation_rate):
     if isinstance(value, bool):
         return not value
 
-    print("Unrecognized setting, '{}:{}', in .clang-format configuration.".format(key, value), file=stderr)
+    print("Unrecognized setting, '{}: {}', in .clang-format configuration.".format(key, value), file=stderr)
     return value
 
 
