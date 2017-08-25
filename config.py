@@ -9,7 +9,7 @@ CONFIG_FILENAME = ".clang-format"
 
 def make_default_config(command, style):
     args = [command, "-dump-config"] + ["-style={}".format(style)] if style else []
-    config_buffer = str(check_output(args, stderr=PIPE))
+    config_buffer = check_output(args, stderr=PIPE).decode('utf-8')
     config = load(config_buffer)
     return config
 
