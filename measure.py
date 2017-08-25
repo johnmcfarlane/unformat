@@ -10,7 +10,7 @@ def get_num_deleted_lines(source_filename, formatted_source):
     diff_args = ["diff", "--changed-group-format='%<'", "--unchanged-group-format=''", source_filename, "-"]
     # diff_args = ["wc", "-c", "-"]
     p = Popen(diff_args, stdout=PIPE, stdin=PIPE, stderr=STDOUT)
-    diff_output = p.communicate(input=str.encode(formatted_source))[0].decode("utf-8")
+    diff_output = str(p.communicate(input=str.encode(formatted_source))[0])
     return diff_output.count('\n')
 
 
@@ -20,7 +20,7 @@ def measure_file(source_filename, workspace_path, command):
 
     clang_format_args = [command, "-style=file", "-"]
     p = Popen(clang_format_args, stdout=PIPE, stdin=PIPE, stderr=STDOUT, cwd=workspace_path)
-    formatted_source = p.communicate(input=str.encode(source))[0].decode("utf-8")
+    formatted_source = str(p.communicate(input=str.encode(source))[0])
 
     num_deleted_lines = get_num_deleted_lines(source_filename, formatted_source)
     edit_distance = Levenshtein.distance(source, formatted_source)
