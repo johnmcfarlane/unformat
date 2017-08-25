@@ -11,7 +11,7 @@ from recombine import recombine
 
 
 def gather_source_filenames(examples):
-    globs = [glob(example, recursive=True) for example in examples]
+    globs = [glob(example) for example in examples]
     source_filenames = [source_filename for glob in globs for source_filename in glob]
 
     if not source_filenames:

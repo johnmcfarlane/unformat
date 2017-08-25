@@ -28,12 +28,15 @@ sudo apt install clang-format python3-levenshtein python3-yaml
 If Unformat is cloned into */home/abc/unformat* and C++ source code is in */home/abc/my_project*,
 
 ```sh
-python3 /home/abc/unformat -i "" --root /home/abc/my_project "/home/abc/my_project/**/*.h" "/home/abc/my_project/**/*.cpp"
+python3 /home/abc/unformat -i "" --root /home/abc/my_project /home/abc/my_project/**/*.h /home/abc/my_project/**/*.cpp
 ```
 
 will search for the best *.clang-format* file. 
 It will start searching from */home/abc/my_project/.clang-format*
 and will write new configurations to that location as they are found.
+(Note you must have 
+[globstar enabled](http://shellrunner.com/better-simpler-searching-and-scripting-with-bash-globstar/)
+to make use of recursive (`**`) wildcards.)
 
 The search may continue indefinitely.
 Press Ctrl-C to stop early. 
