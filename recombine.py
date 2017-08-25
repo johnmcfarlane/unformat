@@ -16,6 +16,7 @@ def make_range(start, stop):
 
 
 mutation_rules = {
+    "BasedOnStyle": make_choice("LLVM", "Google", "Chromium", "Mozilla", "WebKit"),
     "DisableFormat": lambda value, mutation_rate: False,
     "AllowShortFunctionsOnASingleLine": make_choice("None", "Empty", "Inline", "All"),
     "ConstructorInitializerIndentWidth": make_delta_sq(4),
