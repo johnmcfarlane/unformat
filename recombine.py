@@ -16,6 +16,7 @@ def make_range(start, stop):
 
 
 mutation_rules = {
+    "BasedOnStyle": make_choice("LLVM", "Google", "Chromium", "Mozilla", "WebKit"),
     "DisableFormat": lambda value, mutation_rate: False,
     "AllowShortFunctionsOnASingleLine": make_choice("None", "Empty", "Inline", "All"),
     "ConstructorInitializerIndentWidth": make_delta_sq(4),
@@ -67,7 +68,7 @@ def mutate_value(key, value, mutation_rate):
     if isinstance(value, bool):
         return not value
 
-    print("Unrecognized setting, '{}:{}', in .clang-format configuration.".format(key, value), file=stderr)
+    print("Unrecognized setting, '{}: {}', in .clang-format configuration.".format(key, value), file=stderr)
     return value
 
 
