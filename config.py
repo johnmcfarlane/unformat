@@ -22,9 +22,12 @@ def make_initial_configs(args):
             return [load(config_file.read())]
     elif args.initial is None and args.root:
         config_filepath = path.join(args.root, CONFIG_FILENAME)
-        with open(config_filepath) as config_file:
-            print("Using the configuration file from the provided root, '{}'".format(args.root))
-            return [load(config_file.read())]
+        try:
+            with open(config_filepath) as config_file:
+                print("Using the configuration file from the provided root, '{}'".format(args.root))
+                return [load(config_file.read())]
+        except FileNotFoundError:
+            pass
 
     styles = ["LLVM", "Google", "Chromium", "Mozilla", "WebKit"]
     print("Using default .clang-format selection: {}".format(styles), file=stderr)
