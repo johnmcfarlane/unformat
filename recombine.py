@@ -1,69 +1,13 @@
-from random import choice, random, randrange
+from random import random, choice
 from sys import stderr
 
 
-def make_choice(*choices):
-    return lambda value, mutation_rate: choice(choices)
-
-
-def make_delta_sq(factor, minimum=0):
-    return lambda value, mutation_rate: max(minimum,
-                                            int(value) + randrange(-factor, factor + 1) * randrange(factor + 1))
-
-
-def make_range(start, stop):
-    return lambda value, mutation_rate: randrange(start, stop)
-
-
-mutation_rules = {
-    "BasedOnStyle": make_choice("LLVM", "Google", "Chromium", "Mozilla", "WebKit"),
-    "DisableFormat": lambda value, mutation_rate: False,
-    "AllowShortFunctionsOnASingleLine": make_choice("None", "Empty", "Inline", "All"),
-    "ConstructorInitializerIndentWidth": make_delta_sq(4),
-    "PenaltyBreakFirstLessLess": make_delta_sq(10),
-    "MacroBlockEnd": lambda value, mutation_rate: value,
-    "MacroBlockBegin": lambda value, mutation_rate: value,
-    "IncludeCategories": lambda value, mutation_rate: [mutate(item, mutation_rate) for item in value],
-    "    Priority": make_range(1, 4),
-    "AlignAfterOpenBracket": make_choice("Align", "DontAlign", "AlwaysBreak"),
-    "AlwaysBreakAfterReturnType": make_choice("None", "All", "TopLevel", "AllDefinitions", "TopLevelDefinitions"),
-    "AccessModifierOffset": make_range(-8, 9),
-    "BreakBeforeBraces": make_choice("Attach", "Linux", "Mozilla", "Stroustrup", "Allman", "GNU", "WebKit", "Custom"),
-    "PenaltyBreakComment": make_delta_sq(10),
-    "PenaltyExcessCharacter": make_delta_sq(1000),
-    "ObjCBlockIndentWidth": make_range(0, 8),
-    "IncludeIsMainRegex": lambda value, mutation_rate: value,
-    "PointerAlignment": make_choice("Left", "Right", "Middle"),
-    "ForEachMacros": lambda value, mutation_rate: value,
-    "BraceWrapping": lambda value, mutation_rate: mutate(value, mutation_rate),
-    "  - Regex": lambda value, mutation_rate: value,
-    "PenaltyReturnTypeOnItsOwnLine": make_delta_sq(10),
-    "PenaltyBreakString": make_delta_sq(25),
-    "ColumnLimit": make_delta_sq(5, 1),
-    "TabWidth": make_delta_sq(3),
-    "IndentWidth": make_delta_sq(4),
-    "SpaceBeforeParens": make_choice("Never", "ControlStatements", "Always"),
-    "Standard": make_choice("Cpp03", "Cpp11", "Auto"),
-    "UseTab": make_choice("Never", "ForIndentation", "Always"),
-    "Language": make_choice("None", "Cpp", "Java", "JavaScript", "Proto", "TableGen"),
-    "BreakBeforeBinaryOperators": make_choice("None", "NonAssignment", "All"),
-    "JavaScriptQuotes": make_choice("Leave", "Single", "Double"),
-    "PenaltyBreakBeforeFirstCallParameter": make_delta_sq(2),
-    "AlwaysBreakAfterDefinitionReturnType": make_choice("None", "All", "TopLevel"),
-    "MaxEmptyLinesToKeep": make_delta_sq(1),
-    "SpacesBeforeTrailingComments": make_delta_sq(3),
-    "NamespaceIndentation": make_choice("None", "Inner", "All"),
-    "ContinuationIndentWidth": make_delta_sq(3),
-    "CommentPragmas": lambda value, mutation_rate: value,
-    "Priority": lambda value, mutation_rate: value,
-    "Regex": lambda value, mutation_rate: value,
-}
-
-
-def mutate_value(key, value, mutation_rate):
+def mutate_value(key, value, mutate_args):
+    mutation_rules = mutate_args["mutation_rules"]
     if key in mutation_rules:
         mutation_rule = mutation_rules[key]
-        return mutation_rule(value, mutation_rate)
+        mutated_value = mutation_rule(value, mutate_args)
+        return mutated_value
 
     if isinstance(value, bool):
         return not value
@@ -72,24 +16,75 @@ def mutate_value(key, value, mutation_rate):
     return value
 
 
-def visit_line(key, value, mutation_rate):
-    return mutate_value(key, value, mutation_rate) if random() < mutation_rate else value
+def visit_line(key, value, mutate_args):
+    return mutate_value(key, value, mutate_args) if random() < mutate_args["probability"] else value
 
 
-def mutate(config, mutation_rate):
-    return {key: visit_line(key, value, mutation_rate) for key, value in config.items()}
+def crossover_value(parent1, parent2, key):
+    assert(key in parent1 or key in parent2)
+
+    if key not in parent1:
+        return parent2[key]
+
+    if key not in parent2:
+        return parent1[key]
+
+    value1 = parent1[key]
+    value2 = parent2[key]
+    assert(type(value1) == type(value2))
+
+    if type(value1) is dict:
+        return crossover(value1, value2)
+    else:
+        return choice([value1, value2])
 
 
-def recombine(scored_parents, args):
-    ranked = sorted(scored_parents, key=lambda scored_parent: scored_parent[0])
+def crossover(parent1, parent2):
+    parent1_keys = parent1.keys()
+    parent2_keys = parent2.keys()
+    keys = set(parent1_keys).union(parent2_keys)
+    assert(len(keys) == len(parent1_keys) == len(parent2_keys))
 
-    fittest = ranked[0]
-    (fittest_score, fittest_config) = fittest
+    return {key: crossover_value(parent1, parent2, key) for key in keys}
 
-    # rank-based selection with elitism
-    elite_configs = [fittest_config]
-    recombined_configs = [mutate(ranked[int(random() * random() * len(ranked))][1], args.mutation) for _ in
-                          range(args.population - 1)]
-    recombination = elite_configs + recombined_configs
 
-    return (fittest, recombination)
+def mutate(config, mutate_args):
+    return {key: visit_line(key, value, mutate_args) for key, value in config.items()}
+
+
+def choose_from_ranked(ranked):
+    i = int(random() * random() * len(ranked))
+    return ranked[i]
+
+
+# returns tuple of:
+# - best (fittest) individual from population and
+# - worst (least fit) individual from population and
+# - next generation of mutated offspring selected from elite and population
+def recombine(elite, population, mutation, args):
+    sort_key = lambda scored: scored[0]
+
+    unranked = population
+    if elite:
+        unranked.append(elite)
+    ranked = sorted(unranked, key=sort_key)
+
+    mutate_args = {
+        "probability": mutation,
+        "mutation_rules": args.backend.mutation_rules(args, mutate)
+    }
+    def make_offspring():
+        parent1 = choose_from_ranked(ranked)
+        parent2 = choose_from_ranked(ranked)
+        crossed = crossover(parent1[1], parent2[1])
+        mutation = mutate(crossed, mutate_args)
+        args.backend.sanitize(mutation)
+        return mutation
+
+    recombined_configs = [make_offspring() for _ in range(args.population)]
+
+    best = min(population, key=sort_key)
+    worst = max(population, key=sort_key)
+
+    # cannot pass args to MP pool with mutation_rules in it
+    return (best, worst, recombined_configs)
