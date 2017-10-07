@@ -57,6 +57,9 @@ mutation_rules = {
     "CommentPragmas": lambda value, mutation_rate: value,
     "Priority": lambda value, mutation_rate: value,
     "Regex": lambda value, mutation_rate: value,
+    "PenaltyBreakAssignment": make_delta_sq(2),
+    "AlignEscapedNewlines": make_choice("DontAlign", "Left", "Right"),
+    "BreakConstructorInitializers": make_choice("BeforeColon", "BeforeComma", "AfterColon"),
 }
 
 
