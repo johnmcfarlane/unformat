@@ -35,7 +35,11 @@ def make_initial_configs(args):
 
 
 def present_config(config, args, exiting):
-    config_buffer = dump(config)
+    config_buffer = dump(
+        config,
+        default_flow_style=False,
+        explicit_start=True,
+        explicit_end=True)
     if args.root:
         # If output is file, always write out results
         # because the same copy can be updated with latest and greatest.
