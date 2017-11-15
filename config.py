@@ -2,7 +2,7 @@ from os import path
 from subprocess import check_output, PIPE
 from sys import stderr
 
-from yaml import load, dump
+from yaml import safe_load, dump
 
 CONFIG_FILENAME = ".clang-format"
 
@@ -10,7 +10,7 @@ CONFIG_FILENAME = ".clang-format"
 def make_default_config(command, style):
     args = [command, "-dump-config"] + ["-style={}".format(style)] if style else []
     config_buffer = check_output(args, stderr=PIPE).decode('utf-8')
-    config = load(config_buffer)
+    config = safe_load(config_buffer)
     return config
 
 
@@ -19,13 +19,13 @@ def make_initial_configs(args):
         config_filepath = args.initial
         with open(config_filepath) as config_file:
             print("Using the provided configuration file, '{}'".format(args.initial), file=stderr)
-            return [load(config_file.read())]
+            return [safe_load(config_file.read())]
     elif args.initial is None and args.root:
         config_filepath = path.join(args.root, CONFIG_FILENAME)
         try:
             with open(config_filepath) as config_file:
                 print("Using the configuration file from the provided root, '{}'".format(args.root))
-                return [load(config_file.read())]
+                return [safe_load(config_file.read())]
         except FileNotFoundError:
             pass
 
