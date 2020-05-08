@@ -6,7 +6,7 @@ from multiprocessing import cpu_count, Pool
 from sys import stderr
 
 from config import make_initial_configs, present_config
-from measure import measure
+from measure import MeasureConfigTask
 from recombine import recombine
 
 
@@ -19,15 +19,6 @@ def gather_source_filenames(examples):
         exit("Failed to find example source files in {}.".format(paths))
 
     return source_filenames
-
-
-class MeasureConfigTask:
-    def __init__(self, source_filenames, args):
-        self._source_filenames = source_filenames
-        self._args = args
-
-    def __call__(self, config):
-        return (measure(config, self._source_filenames, self._args), config)
 
 
 def score_population(population, source_filenames, args, pool):
