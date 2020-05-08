@@ -6,6 +6,15 @@ from sys import stderr
 from tempfile import TemporaryDirectory
 
 
+class MeasureConfigTask:
+    def __init__(self, source_filenames, args):
+        self._source_filenames = source_filenames
+        self._args = args
+
+    def __call__(self, config):
+        return (measure(config, self._source_filenames, self._args), config)
+
+
 def get_num_deleted_lines(source_filename, formatted_source):
     diff_args = ["diff", "--changed-group-format='%<'", "--unchanged-group-format=''", source_filename, "-"]
     # diff_args = ["wc", "-c", "-"]
