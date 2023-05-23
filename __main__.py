@@ -68,6 +68,7 @@ if __name__ == "__main__":
     parser.add_argument("-m", "--mutation", help="mutation rate", type=float, default=0.05)
     parser.add_argument("-p", "--population", help="population size", type=int, default=40)
     parser.add_argument("-r", "--root", help="project root (location for .clang-format file)")
+    parser.add_argument("-l", "--lock", metavar="ClangFormatKey", action="append", help="prevent mutation of the given key")
     parser.add_argument("examples", help="path to example source files", nargs='+')
 
     args = parser.parse_args()
