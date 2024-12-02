@@ -23,7 +23,10 @@ def gather_source_filenames(examples):
 
 def score_population(population, source_filenames, args, pool):
     task = MeasureConfigTask(source_filenames, args)
-    return pool.map(task, population)
+    if pool:
+        return pool.map(task, population)
+    else:
+        return list(map(task, population))
 
 
 def generate(population, source_filenames, args, pool):
@@ -72,5 +75,8 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    with Pool(args.jobs) as pool:
-        main(args, pool)
+    if args.jobs == 1:
+        main(args, None)
+    else:
+        with Pool(args.jobs) as pool:
+            main(args, pool)
